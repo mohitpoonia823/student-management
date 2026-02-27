@@ -1,0 +1,103 @@
+services:
+
+  # ── Backend ────────────────────────────────────────────────────────────────
+  - type: web
+    name: sms-backend
+    runtime: node
+    region: oregon
+    plan: free
+
+    rootDir: backend
+
+    buildCommand: npm ci --only=production
+    startCommand: node server.js
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+  # ── Frontend ───────────────────────────────────────────────────────────────
+  - type: web
+    name: sms-frontend
+    runtime: static
+    region: oregon
+    plan: free
+
+    rootDir: frontend
+
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./build
+
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          name: sms-backend
+          type: web
+          property: host
+
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+    autoDeploy: true
+```
+
+---
+
+**Explaining key parts:**
+
+- `type: web` for backend — a running Node.js server
+- `type: static` for frontend — just static files served by Render's CDN, no server needed
+- `rootDir` — Render only looks inside this folder, ignores the rest of the repo
+- `fromService` — automatically sets `REACT_APP_API_URL` to the backend's live Render URL, no hardcoding needed
+- `routes: /* → /index.html` — same as nginx `try_files`, needed for React client-side routing
+- `headers` — security and caching headers
+- `autoDeploy: true` — Render redeploys automatically when you push to main
+
+---
+
+**To deploy using this file:**
+1. Push your code to GitHub
+2. Go to [render.com](https://render.com)
+3. Click **New → Blueprint**
+4. Connect your GitHub repo
+5. Render reads `render.yaml` and creates both services automatically
+
+---
+
+## ✅ All 10 Steps Complete!
+
+Your project structure should now look like this:
+```
+student-management/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── cd.yml
+├── backend/
+│   ├── Dockerfile
+│   └── .dockerignore
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── .dockerignore
+├── docker-compose.yml
+├── docker-compose.dev.yml
+└── render.yaml
