@@ -104,7 +104,7 @@ export default function App() {
   return (
     <div className="app">
       <nav className="navbar">
-        <h1>📚 Student Management</h1>
+        <h1>📚 Student Managemen System</h1>
         <div className="navbar-nav">
           <button className={`nav-btn ${view === 'students' ? 'active' : ''}`} onClick={() => setView('students')}>👥 Students</button>
           <button className={`nav-btn ${view === 'dashboard' ? 'active' : ''}`} onClick={() => setView('dashboard')}>📊 Dashboard</button>
