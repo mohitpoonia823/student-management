@@ -1,5 +1,11 @@
 import axios from 'axios';
 
+console.log('API URL:', process.env.REACT_APP_API_URL);
+
+const BaseUrl = `${process.env.REACT_APP_API_URL}/api`;
+
+const API = axios.create({ baseURL: BaseUrl });
+
 const API = axios.create({ baseURL: '/api' });
 
 export const getStudents = (params) => API.get('/students', { params });
